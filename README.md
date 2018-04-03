@@ -88,8 +88,8 @@ Currently, the normal sampling types are not yet supported.
 
 #### param_space[3] =  fine_tune_settings
 This is a parameter that describes the fine_tune_settings. The value can either be False indicating fine tuning of the parameter is not required or a tuple containing (Radius, N_points). 
-1. Radius - This is parameter expressed in percentage. After tpe or random search is carried out, a new search space is constructed around the current optimal parameters as follows: lower_bound= opt_param - opt_param x Radius/100 and upper_bound= opt_param + opt_param x Radius/100. 
-2. N_points - Number of grid points required between the lower and upper bounds includeing the bounds.
+1. Radius - This setting expressed in percentage. After tpe or random search is carried out, a new search space is constructed around the current optimal parameters as follows: lower_bound= opt_param - opt_param x Radius/100 and upper_bound= opt_param + opt_param x Radius/100. 
+2. N_points - Number of grid points required between the lower and upper bounds including the bounds.
 
 So, in our example the space is coded as follows:
 ```python
