@@ -6,4 +6,8 @@ hyperfine is a wrapper for hyperparameter optimization using Tree of Parzen Esti
 
 In the current version, parallel evaluation is not supported.
 
+## Requirements
+- numpy
+- hyperopt
 
+## Example
