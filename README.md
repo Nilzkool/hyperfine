@@ -55,7 +55,7 @@ def train_and_evaluate(params):
     return train_accuracy, train_sensitivity, valid_accuracy, valid_sensitivity
 ```
 
-Now, we define the objective function for optimization process.
+Now, we define the objective function.
 ```python
 def cost_function(params):
     # train and evaluate the model and get the required information
