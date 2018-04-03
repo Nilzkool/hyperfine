@@ -120,9 +120,10 @@ In our example, we we can define it as follows:
 ```python
 sr = search_routine(obj_func=Cost_Function, space=space, algo='tpe+grid', max_evals=1, verbose=1)
 ```
-Finally, we invoke the search method which returns a dictionary containing the following entries:
-1.'best_parameters': optimal_parameters- The set of optimal parameters that resulted in minimum loss
-2. 'results': result_dict- result_dict contains all the information evaluated by the cost function at the optimal parameters
+Finally, we invoke the search method which returns a dictionary containing the following keys:
+
+1.'best_parameters' - A dictionary of optimal parameters that resulted in minimum loss
+2. 'results' - A results dictionary containing all the information evaluated by the cost function at the optimal parameters
 ```python
 best_param_dict=sr.search()
 ```
