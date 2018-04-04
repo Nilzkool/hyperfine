@@ -106,7 +106,7 @@ Now, we will import the search_routine class from hyperfine wrapper.
 ```python
 import sys
 folder_path='C:/folder_where_hyperfine_is_saved'
-sys.path.insert(0,'')
+sys.path.insert(0,folder_path)
 from hyperfine import search_routine
 ```
 search_routine class requires the following arguments:
