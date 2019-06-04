@@ -2,8 +2,8 @@
 """
 This is a wrapper module to search for optimal hyperparameters using tree of parzen estimators (tpe)
 or random search and then to fine tune the parameters using grid search. tpe and random search are 
-implemented using hyperopt library (Bergstra, James S., et al)  while the grid search is written 
-by myself.
+implemented using hyperopt library (Bergstra, James S., et al, https://github.com/hyperopt/hyperopt) 
+while grid search was written by myself.
 
 """
 
@@ -33,17 +33,17 @@ class search_routine:
         for param in self.space:  
             param_details=self.space[param]
             
-            fine_tune_flag=param_details[3]
-            sampling=param_details[1]
+            fine_tune_flag=param_details[2]
+            sampling=param_details[0]
             opt_param=current_opt_params[param]
             
-            if fine_tune_flag==False or sampling=='choice':
+            if fine_tune_flag==False:
                 oneD_points=np.array([opt_param])
             else:
-                grid_params=param_details[3]
-                radius=(grid_params[0])/100
-                N_points=grid_params[1]
                 if (sampling=='quniform') or (sampling=='qloguniform') or (sampling=='randint') :
+                    grid_params=param_details[2]
+                    radius=(grid_params[0])/100
+                    N_points=grid_params[1]
                     lb=np.ceil(opt_param-radius*opt_param)
                     lb=max(1,lb)
                     ub=np.floor(opt_param+radius*opt_param)
@@ -51,15 +51,22 @@ class search_routine:
                         ub=ub+1e-4 # handling randint break down when lb==ub
                     oneD_points=np.linspace(lb,ub,N_points)
                     oneD_points.astype(int)
-                    
+                
+                elif sampling=='choice':
+                    choice_list = param_details[1]
+                    oneD_points = np.arange(0,len(choice_list))
+                
                 else:
+                    grid_params=param_details[2]
+                    radius=(grid_params[0])/100
+                    N_points=grid_params[1]
                     lb=opt_param-radius*opt_param
                     ub=opt_param+radius*opt_param
-                
                     oneD_points=np.linspace(lb,ub,N_points)
+                    
                 if grid_size_flag==False:    
                     grid_size_flag=True
-                    grid_size_ind=i_cnt+1
+                    grid_size_ind=i_cnt
                 
             grid_points_list.append(oneD_points)
             param_names.append(param)    
@@ -91,11 +98,11 @@ class search_routine:
         i_cnt=0
         for param in param_names:
             param_details=self.space[param]
-            sampling=param_details[1]
+            sampling=param_details[0]
             
             if sampling=='choice':
                 option=int(param_vals[i_cnt])
-                choices=param_details[2]
+                choices=param_details[1]
                 option_str=choices[option]
                 param_dict[param]=option_str
             
@@ -132,15 +139,17 @@ class search_routine:
            
         return final_dict
     
+
+    
     def __construct_hyperopt_space(self):
         # Function to contruct the space for fmin in hyperopt 
         
         hyperopt_space={}
         for param in self.space:
             param_details=self.space[param]
-            label=param_details[0]
-            sampling_type=param_details[1]
-            bounds=param_details[2]
+            label=param
+            sampling_type=param_details[0]
+            bounds=param_details[1]
             if sampling_type=='choice':
                 hyperopt_space[param]=hp.choice(label,bounds)
             elif sampling_type=='uniform':
@@ -154,7 +163,7 @@ class search_routine:
                 hyperopt_space[param]=hp.loguniform(label,bounds[0], bounds[1])
             
             elif sampling_type=='qloguniform':
-                hyperopt_space[param]=hp.qloguniform(label,bounds[0], bounds[1])
+                hyperopt_space[param]=hp.qloguniform(label,bounds[0], bounds[1],bounds[2])
         
         return hyperopt_space
         
@@ -164,9 +173,9 @@ class search_routine:
         for param in best_params:
             param_value=best_params[param]
             param_space=self.space[param]
-            if param_space[1]=='choice' and isinstance(param_value, str)==False:
-                param_value_bounds=param_space[2]
-                best_params[param]=param_value_bounds[int(param_value)]
+            if param_space[0]=='choice' and isinstance(param_value, str)==False:
+                choice_list=param_space[1]
+                best_params[param]=choice_list[int(param_value)]
         
         return final_dict   
      
@@ -184,17 +193,17 @@ class search_routine:
         algo_dict={'tpe': tpe.suggest,'random':rand.suggest}
         
         if main_algo not in algo_dict:
-            print('Please enter either tpe or random as the main algorithm')
+            print('Error: Please enter either tpe or random as the main algorithm')
             return False
         
-        print("Hyperparameter search initiated...")
+        print("\nHyperparameter search initiated...")
         
         self.hyperopt_space=self.__construct_hyperopt_space()
         trials=Trials()
         best_params = fmin(self.obj_func, self.hyperopt_space, algo=algo_dict[main_algo], max_evals=self.max_evals, trials=trials,verbose=self.verbose)
         best_trials_dict=trials.best_trial
         
-        print("Hyperparameter search over...")
+        
         
             
         final_dict={'best_params': best_params, 'results': best_trials_dict['result']}
@@ -205,6 +214,7 @@ class search_routine:
         else:
             final_dict={'best_params': best_params, 'results': best_trials_dict['result']}
         
+        print("\nHyperparameter search over...")
         # convert to choice strings
         final_dict=self.__convert_choices2str(final_dict)
    
