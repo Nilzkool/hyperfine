@@ -93,10 +93,10 @@ This is a parameter that describes the fine_tune_settings. The value can either 
 
 So, in our example the space is coded as follows:
 ```python
-space={'activation': ['activation','choice' ,['identity','logistic','tanh','relu'], False], 
-       'hidden_units':['hidden_units', 'quniform', (1,10,1), False],
-       'iterations': ['iterations', 'quniform', (50,250,1), (25,3)],
-       'l2_regu': ['l2_regu', 'loguniform', (-4,0), (25,4)]
+space={'activation': ['choice' ,['identity','logistic','tanh','relu'], False], 
+       'hidden_units':['quniform', (1,10,1), False],
+       'iterations': ['quniform', (50,250,1), (25,3)],
+       'l2_regu': ['loguniform', (-4,0), (25,4)]
        }
 ```
 Note that we do not require fine-tuning of activation and hidden_units parameters. By default, fine tuning of 'choice' parameters is ignored.
