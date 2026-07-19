@@ -8,6 +8,19 @@ hyperfine is a wrapper for hyperparameter optimization using Tree of Parzen Esti
 - numpy
 - hyperopt
 
+## Installation
+Install directly from GitHub:
+```bash
+pip install git+https://github.com/Nilzkool/hyperfine.git
+```
+
+Or clone the repo and install locally (editable, so local edits are picked up immediately):
+```bash
+git clone https://github.com/Nilzkool/hyperfine.git
+cd hyperfine
+pip install -e .
+```
+
 ## Example
 This is a simple example to demonstrate on how to use this wrapper. Suppose we are interested in tuning a neural network model with one hidden layer and LBFGS solver. The parameters we need to tune are the number of hidden units, hidden activation type, the number of iterations and the l2 regularization which will be based on validation accuracy. Further, we also want to fine tune the number of iterations and l2 regularization parameters.
 
@@ -70,15 +83,12 @@ def cost_function(params):
 Please note that the __'loss':value__ and the __'status':'ok'__ entries of the cost dictionary are mandatory as they are required by the hyperopt package.
 
 ### Defining the search space
-This is the most important part of the example which shows how to define the search space. The syntax is a bit different from defining the search space in hyperopt. In essence, every parameter key in the space dictionary should contain a list (will be referred to as 'param_space') of four values. These values are as follows:
+This is the most important part of the example which shows how to define the search space. The syntax is a bit different from defining the search space in hyperopt. In essence, every parameter key in the space dictionary should map to a list (will be referred to as 'param_space') of three values, keyed by the parameter name itself (used as the label). These values are as follows:
 
-#### param_space[0] = label 
-A string identifier for pyll graphs in hyperopt)
+#### param_space[0] = sampling_type 
+One of the following strings: 'choice', 'uniform', 'quniform', 'randint', 'loguniform' or 'qloguniform'. More details on these sampling types can be found (https://github.com/hyperopt/hyperopt/wiki/FMin) under section 2.1
 
-#### param_space[1] = sampling_type 
-One of the following strings: 'choice', 'uniform', 'quniform', 'loguniform' or 'qloguniform'. More details on these sampling types can be found (https://github.com/hyperopt/hyperopt/wiki/FMin) under section 2.1
-
-#### param_space[2] =  bounds 
+#### param_space[1] =  bounds 
 A list or tuple corresponding to the sampling type and shown as follows:
 1. 'choice'- a list or tuple containing the desired options similar to options parameter in hp.choice
 2. 'uniform' or 'loguniform'- a list or tuple formatted as (lower_bound, upper_bound)
@@ -86,7 +96,7 @@ A list or tuple corresponding to the sampling type and shown as follows:
 4. 'randint'-a list or tuple formatted as (upper_bound)
 Currently, the normal sampling types are not yet supported.
 
-#### param_space[3] =  fine_tune_settings
+#### param_space[2] =  fine_tune_settings
 This is a parameter that describes the fine_tune_settings. The value can either be False indicating fine tuning of the parameter is not required or a tuple containing (Radius, N_points). 
 1. Radius - This setting expressed in percentage. After tpe or random search is carried out, a new search space is constructed around the current optimal parameters as follows: lower_bound= opt_param - opt_param x Radius/100 and upper_bound= opt_param + opt_param x Radius/100. 
 2. N_points - Number of grid points required between the lower and upper bounds including the bounds.
@@ -102,14 +112,11 @@ space={'activation': ['choice' ,['identity','logistic','tanh','relu'], False],
 Note that we do not require fine-tuning of activation and hidden_units parameters. By default, fine tuning of 'choice' parameters is ignored.
 
 ### Calling hyperfine module
-Now, we will import the search_routine class from hyperfine wrapper. 
+Now, we will import the `SearchRoutine` class from the installed hyperfine package. 
 ```python
-import sys
-folder_path='C:/folder_where_hyperfine_is_saved'
-sys.path.insert(0,folder_path)
-from hyperfine import search_routine
+from hyperfine import SearchRoutine
 ```
-search_routine class requires the following arguments:
+`SearchRoutine` requires the following arguments:
 1. obj_func- The objective or cost function
 2. space-The search space
 3. algo- One of the possible strings:'tpe+grid', 'random+grid', 'tpe' or 'random'. For instance, if we are interested in TPE optimization  and then fine tuning using grid search, the string should be 'tpe+grid'.
@@ -118,13 +125,20 @@ search_routine class requires the following arguments:
 
 In our example, we we can define it as follows:
 ```python
-sr = search_routine(obj_func=Cost_Function, space=space, algo='tpe+grid', max_evals=50, verbose=1)
+sr = SearchRoutine(obj_func=Cost_Function, space=space, algo='tpe+grid', max_evals=50, verbose=1)
 ```
 Finally, we invoke the search method which returns a dictionary containing the following keys:
 1. 'best_parameters' - A dictionary of optimal parameters that resulted in minimum loss
 2. 'results' - A results dictionary containing all the information evaluated by the cost function at the optimal parameters
 ```python
 best_param_dict=sr.search()
+```
+
+## Development
+Install with the `test` extra and run the test suite with pytest:
+```bash
+pip install -e .[test]
+pytest
 ```
 
 ## Currently not supported
